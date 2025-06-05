@@ -300,7 +300,6 @@ Content-Type: application/json
 }
 
 =======
-}
 
 ### registrar ingrediente
 POST http://localhost:3000/ingredientes/crear
@@ -338,9 +337,19 @@ POST http://localhost:3000/recetas/crear
 Content-Type: application/json
 
 {
-  "idProducto": 4,
-  "idIngrediente": 21,
-  "cantidad": 9
+  "idProducto": 1,
+  "Ingredientes": [
+    {
+      "idIngrediente": 14,
+      "cantidad": 0.5,
+      "nombre": "tomate"
+    },
+    {
+      "idIngrediente": 12,
+      "cantidad": 0.7,
+      "nombre": "cebolla"
+    }
+  ]
 }
 
 
@@ -349,9 +358,19 @@ PUT http://localhost:3000/recetas/editar
 Content-Type: application/json
 
 {
-  "idProducto": 4,
-  "idIngrediente": 21,
-  "cantidad": 50
+  "idProducto": 1,
+  "Ingredientes": [
+    {
+      "idIngrediente": 17,
+      "cantidad": 0.5,
+      "nombre": "tomate"
+    },
+    {
+      "idIngrediente": 19,
+      "cantidad": 0.7,
+      "nombre": "cebolla"
+    }
+  ]
 }
 ### eliminar receta
 DELETE http://localhost:3000/recetas/eliminar
@@ -363,7 +382,7 @@ Content-Type: application/json
 }
 
 ### mostrar recetas
-GET http://localhost:3000/recetas/mostrar/1
+GET http://localhost:3000/recetas/mostrar
 
 ### crear Producto --> falta corregir
 POST http://localhost:3000/productos/crear

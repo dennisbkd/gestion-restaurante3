@@ -45,9 +45,9 @@ export class ModeloReceta {
   }
 
   static async crearReceta ({ input }) {
-    const { idProducto, Ingrediente } = input
+    const { idProducto, Ingredientes } = input
     try {
-      const datosReceta = Ingrediente.map(({ idIngrediente, cantidad }) => ({
+      const datosReceta = Ingredientes.map(({ idIngrediente, cantidad }) => ({
         idProducto,
         idIngrediente,
         cantidad
@@ -73,14 +73,17 @@ export class ModeloReceta {
   }
 
   static async editarReceta ({ input }) {
-    const { idProducto, Ingrediente } = input
+    const { idProducto, Ingredientes } = input
+    console.log('Editar Receta:', input)
+    console.log('ID Producto:', idProducto)
+    console.log('Ingredientes:', Ingredientes)
     try {
       const resultado = await this.Producto.findByPk(idProducto)
       if (!resultado) {
         return { error: 'Producto no encontrado' }
       }
       await Promise.all(
-        Ingrediente.map(({ idIngrediente, cantidad }) =>
+        Ingredientes.map(({ idIngrediente, cantidad }) =>
           this.Receta.upsert({ idProducto, idIngrediente, cantidad })
         )
       )
@@ -91,7 +94,7 @@ export class ModeloReceta {
       })
 
       const idsActuales = ingredientesActuales.map(i => i.idIngrediente)
-      const idsNuevos = Ingrediente.map(i => i.idIngrediente)
+      const idsNuevos = Ingredientes.map(i => i.idIngrediente)
 
       const ingredientesAEliminar = idsActuales.filter(id => !idsNuevos.includes(id))
 
@@ -100,7 +103,6 @@ export class ModeloReceta {
           where: { idProducto, idIngrediente: ingredientesAEliminar }
         })
       }
-
       const recetaActualizada = await this.Receta.findAll({
         where: { idProducto },
         attributes: ['idProducto', 'idIngrediente', 'cantidad']
