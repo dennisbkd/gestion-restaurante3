@@ -8,3 +8,7 @@ export const obtenerProductos = (tipo = null)=> {
 export const obtenerPedidoPorId = (id) => {
   return instancia.get(`/pedido/cliente/${id}`);
 }
+
+export const crearProducto = (producto) => {
+  return instancia.post('/productos/crear', producto);
+}

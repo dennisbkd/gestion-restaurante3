@@ -20,32 +20,21 @@ export class ModeloProducto {
 
   // Crear producto
   static async crearProducto ({ input }) {
-    const { nombre, precio, descripcion, time, idCategoria, idStock } = input
+    const { nombre, precio, descripcion, tiempoPreparacion, idCategoria } = input
     try {
-      const [resultado] = await sequelize.query(
-        `DECLARE @mensaje VARCHAR(200);
-         EXEC set_RegistrarProducto 
-           @nombre = :nombre, 
-           @precio = :precio, 
-           @descripcion = :descripcion, 
-           @time = :time, 
-           @idCategoria = :idCategoria, 
-           @idStock = :idStock, 
-           @mensaje = @mensaje OUTPUT;
-         SELECT @mensaje AS mensaje;`,
-        {
-          replacements: { nombre, precio, descripcion, time, idCategoria, idStock },
-          type: sequelize.QueryTypes.SELECT
-        }
-      )
-
-      if (resultado.mensaje.includes('Error')) {
-        return { error: resultado.mensaje }
+      const nuevoProducto = await this.Producto.create({
+        nombre,
+        precio,
+        descripcion,
+        tiempoPreparacion,
+        idCategoria
+      })
+      if (!nuevoProducto) {
+        return { error: 'No se pudo crear el producto' }
       }
-
       return {
-        producto: { nombre, precio, descripcion, time, idCategoria, idStock },
-        mensaje: resultado.mensaje
+        nuevoProducto,
+        mensaje: 'Producto creado exitosamente'
       }
     } catch (error) {
       return {

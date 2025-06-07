@@ -5,30 +5,38 @@ import { ArrowLeft, X, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { toast } from "sonner"
 
+const categorias = [
+  { id: 7, nombre: "Chancho" },
+  { id: 8, nombre: "Pollo" },
+  { id: 9, nombre: "Vaca" },
+  { id: 10, nombre: "Mixto" }
+]
 
-export function RecetaForm({ receta, ingredientesDisponibles, onSave, onCancel, productos }) {
+export function RecetaForm({ receta, ingredientesDisponibles, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     idProducto: receta ? receta.idProducto : null,
     nombre: "",
     descripcion: "",
-    categoria: "",
+    idCategoria: "",
+    tiempoPreparacion: "",
+    precio: 0.0,
     porciones: 1,
   })
 
 
 
   const [ingredientes, setIngredientes] = useState([])
-  const [producto, setProducto] = useState([])
   const [openCombobox, setOpenCombobox] = useState(false)
-  const [openProductoCombobox, setOpenProductoCombobox] = useState(false)
   const [searchIngrediente, setSearchIngrediente] = useState("")
-  const [searchProducto, setSearchProducto] = useState("")
+
 
   useEffect(() => {
     if (receta) {
@@ -36,6 +44,9 @@ export function RecetaForm({ receta, ingredientesDisponibles, onSave, onCancel, 
         idProducto: receta.idProducto,
         nombre: receta.nombre,
         descripcion: receta.descripcion,
+        idCategoria: receta.idCategoria,
+        tiempoPreparacion: receta.tiempoPreparacion,
+        precio: receta.precio
       });
 
       const ingredientesTransformados = receta.Ingredientes.map(ing => ({
@@ -43,26 +54,13 @@ export function RecetaForm({ receta, ingredientesDisponibles, onSave, onCancel, 
         nombre: ing.nombre,
         cantidad: ing.cantidad
       }));
-
-      const productosTransformados = productos.map(prod => ({
-        idProducto: prod.idProducto,
-        nombre: prod.nombre,
-      }));
-      setProducto(productosTransformados);
       setIngredientes(ingredientesTransformados);
     }
-  }, [receta, productos]);
+  }, [receta]);
 
-  const handleInputChange = (field) => {
-    setProducto([field])
-    setFormData({
-      ...formData,
-      idProducto: field.idProducto,
-      nombre: field.nombre,
-    })
-    setOpenProductoCombobox(false)
-    setSearchProducto("")
-    console.log("Form Data:", producto)
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    console.log("Form data updated:", { ...formData, [field]: value })
   }
 
   const handleAddIngrediente = (ingrediente) => {
@@ -87,15 +85,22 @@ export function RecetaForm({ receta, ingredientesDisponibles, onSave, onCancel, 
     setIngredientes(ingredientes.filter((_, i) => i !== index))
   }
 
-  const removeProducto = () => {
-    setProducto([])
-  }
 
   const isFormValid = () => {
+    if (receta) {
+      return (
+        formData.nombre.trim() !== "" &&
+        ingredientes.length > 0 &&
+        ingredientes.every((item) => item.cantidad > 0)
+      )
+    }
     return (
       formData.nombre.trim() !== "" &&
       ingredientes.length > 0 &&
-      ingredientes.every((item) => item.cantidad > 0)
+      ingredientes.every((item) => item.cantidad > 0) &&
+      formData.idCategoria !== "" &&
+      formData.tiempoPreparacion !== "" &&
+      formData.precio > 0
     )
   }
 
@@ -105,25 +110,18 @@ export function RecetaForm({ receta, ingredientesDisponibles, onSave, onCancel, 
       ...formData,
       Ingredientes: ingredientes
     }
-
+    toast.success(receta ? "Receta actualizada" : "Receta creada");
     onSave(recetaData)
-
   }
 
   const ingredientesFiltrados = ingredientesDisponibles.ingredientes.filter(
     (ingrediente) =>
       ingrediente.nombre.toLowerCase().includes(searchIngrediente.toLowerCase())
   )
-  const productosFiltrados = productos.filter(
-    (producto) =>
-      producto.nombre.toLowerCase().includes(searchProducto.toLowerCase())
-  )
-  console.log("Form Data:", productosFiltrados)
-  console.log("productos:", producto)
+
 
   return (
     <div className="space-y-6">
-
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={onCancel}>
           <ArrowLeft className="h-4 w-4" />
@@ -143,50 +141,66 @@ export function RecetaForm({ receta, ingredientesDisponibles, onSave, onCancel, 
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Popover open={openProductoCombobox} onOpenChange={setOpenProductoCombobox}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Search className="mr-2 h-4 w-4" />
-                    Buscar productos...
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput
-                      placeholder="Buscar producto..."
-                      value={searchProducto}
-                      onValueChange={setSearchProducto}
-                    />
-                    <CommandList>
-                      <CommandEmpty>No se encontraron productos.</CommandEmpty>
-                      <CommandGroup>
-                        {productosFiltrados.map((producto) => (
-                          <CommandItem
-                            key={producto.idProducto}
-                            onSelect={() => { handleInputChange(producto) }}
-                            className="cursor-pointer"
-                          >
-                            <div className="flex w-full items-center justify-between">
-                              <span>{producto.nombre}</span>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="nombre">Nombre de la receta</Label>
+              <Input
+                id="nombre"
+                value={formData.nombre}
+                onChange={(e) => handleInputChange("nombre", e.target.value)}
+                placeholder="Ej: Sopa de verduras casera"
+              />
             </div>
-            <div className="space-y-2">
-              {producto.map((item) => (
-                <div className="flex items-center gap-2" key={item.idProducto}>
-                  <span className="w-1/2 animate-pulse">{item.nombre}</span>
-                  <Button variant="ghost" size="icon" onClick={() => removeProducto()}>
-                    <X className="w-4 h-4" />
-                  </Button>
+            {!receta && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="descripcion">Descripción</Label>
+                  <Textarea
+                    id="descripcion"
+                    value={formData.descripcion}
+                    onChange={(e) => handleInputChange("descripcion", e.target.value)}
+                    placeholder="Describe brevemente la receta..."
+                    rows={3}
+                  />
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="categoria">Categoría</Label>
+                  <Select value={formData.idCategoria} onValueChange={(value) => handleInputChange("idCategoria", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categorias.map(({ id, nombre }) => (
+                        <SelectItem key={id} value={id}>
+                          {nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tiempo">Tiempo de preparación (minutos)</Label>
+                  <Input
+                    id="tiempo"
+                    type="text"
+                    placeholder="Ej 00:30 (30 minutos)"
+                    value={formData.tiempoPreparacion}
+                    onChange={(e) => handleInputChange("tiempoPreparacion", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2"></div>
+                <Label htmlFor="precio">Precio</Label>
+                <Input
+                  id="precio"
+                  type="number"
+                  step="0.01"
+                  placeholder="Ej: 10.00"
+                  value={formData.precio}
+                  onChange={(e) => handleInputChange("precio", parseFloat(e.target.value))}
+                />
+              </>
+            )}
+
           </CardContent>
         </Card>
 
@@ -243,7 +257,7 @@ export function RecetaForm({ receta, ingredientesDisponibles, onSave, onCancel, 
                     value={item.cantidad}
                     onChange={(e) => handleUpdateCantidad(index, Number(e.target.value))}
                     className="w-1/3"
-                  />
+                  /> gr
                   <Button variant="ghost" size="icon" onClick={() => handleRemoveIngrediente(index)}>
                     <X className="w-4 h-4" />
                   </Button>
@@ -265,7 +279,7 @@ export function RecetaForm({ receta, ingredientesDisponibles, onSave, onCancel, 
         <Button variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button onClick={handleSave} disabled={!isFormValid()}>
+        <Button onClick={() => { handleSave(); toast.success("Receta guardada"); }} disabled={!isFormValid()}>
           {receta ? "Actualizar Receta" : "Crear Receta"}
         </Button>
       </div>
