@@ -74,9 +74,6 @@ export class ModeloReceta {
 
   static async editarReceta ({ input }) {
     const { idProducto, Ingredientes } = input
-    console.log('Editar Receta:', input)
-    console.log('ID Producto:', idProducto)
-    console.log('Ingredientes:', Ingredientes)
     try {
       const resultado = await this.Producto.findByPk(idProducto)
       if (!resultado) {
