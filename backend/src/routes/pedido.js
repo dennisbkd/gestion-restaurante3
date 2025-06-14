@@ -1,9 +1,9 @@
 import { Router } from 'express'
 import { ControladorPedido } from '../controllers/pedido.js'
 
-export const crearRutasPedido = ({ modeloPedido }) => {
+export const crearRutasPedido = ({ modeloPedido, modeloBitacora }) => {
   const crearRutasPedido = Router()
-  const controladorPedido = new ControladorPedido({ modeloPedido })
+  const controladorPedido = new ControladorPedido({ modeloPedido, modeloBitacora })
 
   // Registrar pedido restringido a solo meseros
   crearRutasPedido.post('/registrar/:idMesero', controladorPedido.registrarPedido)
@@ -19,6 +19,7 @@ export const crearRutasPedido = ({ modeloPedido }) => {
 */
   // Completar pedido, restringido al cocinero
   // crearRutasPedido.patch('/completar/:id', controladorPedido.completarPedido)
-
+  // Registrar pedido a domicilio, restringido a solo clientes
+  crearRutasPedido.get('/registrarPedidoDomicilio/:idCliente', controladorPedido.registrarPedidoDomicilio)
   return crearRutasPedido
 }
